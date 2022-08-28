@@ -7,8 +7,10 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { validate as isUUID } from 'uuid';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { PaginationDto } from '../common/dtos/pagination.dto';
 import { Product } from './entities/product.entity';
 
 @Injectable()
@@ -30,21 +32,48 @@ export class ProductsService {
     }
   }
 
-  // Todo: add pagination
-  findAll() {
-    return this.productsRepository.find({});
+  findAll(paginationDto: PaginationDto) {
+    const { limit = 10, offset = 0 } = paginationDto;
+    return this.productsRepository.find({
+      take: limit,
+      skip: offset,
+      // Todo: relaciones
+    });
   }
 
-  async findOne(id: string) {
-    const product = await this.productsRepository.findOneBy({ id });
+  async findOne(term: string) {
+    let product: Product;
+    if (isUUID(term)) {
+      product = await this.productsRepository.findOneBy({ id: term });
+    } else {
+      const queryBuilder = this.productsRepository.createQueryBuilder();
+      product = await queryBuilder
+        .where('UPPER(title)=:title or slug=:slug', {
+          title: term.toUpperCase(),
+          slug: term.toLowerCase(),
+        })
+        .getOne();
+    }
+
     if (!product) {
-      throw new NotFoundException(`Product with id ${id} not found`);
+      throw new NotFoundException(`Product with ${term} not found`);
     }
     return product;
   }
 
-  update(id: number, updateProductDto: UpdateProductDto) {
-    return `This action updates a #${id} product`;
+  async update(id: string, updateProductDto: UpdateProductDto) {
+    const product = await this.productsRepository.preload({
+      id,
+      ...updateProductDto,
+    });
+    if (!product)
+      throw new NotFoundException(`Product with id ${id} not found`);
+    try {
+      await this.productsRepository.save(product);
+      return product;
+    } catch (error) {
+      this.handleDBExceptions(error);
+    }
   }
 
   async remove(id: string) {
@@ -59,7 +88,7 @@ export class ProductsService {
     }
     this.logger.error(error);
     throw new InternalServerErrorException(
-      'Uneexpected error - Check server logs',
+      'Unexpected error - Check server logs',
     );
   }
 }
