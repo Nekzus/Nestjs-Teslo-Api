@@ -33,3 +33,9 @@ yarn start:dev
 ```
 http://localhost:3000/api/seed
 ```
+
+8. Documentación endpoints de la API (swagger) .
+
+```
+http://localhost:3000/api
+```
