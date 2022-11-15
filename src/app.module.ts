@@ -1,13 +1,14 @@
-import { join } from 'path';
-import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { ProductsModule } from './products/products.module';
-import { CommonModule } from './common/common.module';
-import { SeedModule } from './seed/seed.module';
-import { FilesModule } from './files/files.module';
 import { AuthModule } from './auth/auth.module';
+import { CommonModule } from './common/common.module';
+import { ConfigModule } from '@nestjs/config';
+import { FilesModule } from './files/files.module';
+import { MessagesWsModule } from './messages-ws/messages-ws.module';
+import { Module } from '@nestjs/common';
+import { ProductsModule } from './products/products.module';
+import { SeedModule } from './seed/seed.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -31,6 +32,7 @@ import { AuthModule } from './auth/auth.module';
     SeedModule,
     FilesModule,
     AuthModule,
+    MessagesWsModule,
   ],
 })
 export class AppModule {}
